@@ -1,0 +1,410 @@
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Order Status</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+
+    .wrapper {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+      width: 220px;
+      background-color: #2c6e31;
+      color: white;
+      padding: 20px 0;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      transition: transform 0.3s ease;
+    }
+    .sidebar h3 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 1.2rem;
+      letter-spacing: 1px;
+    }
+    .sidebar a {
+      display: block;
+      color: white;
+      text-decoration: none;
+      padding: 12px 20px;
+      transition: background 0.3s;
+    }
+    .sidebar a:hover {
+      background-color: #3f8744;
+    }
+
+    /* Toggle Button for Mobile */
+    .menu-toggle {
+      display: none;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-size: 26px;
+      background: #2c6e31;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 10px;
+      z-index: 1000;
+      cursor: pointer;
+    }
+
+    /* Main Content */
+    .container {
+      flex: 1;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin: 40px;
+      padding: 20px;
+      border: 2px solid #2c6e31;
+    }
+    h1 {
+      background-color: #2c6e31;
+      color: white;
+      padding: 10px;
+      margin-bottom: 23px;
+      width: 100%;
+      text-align: center;
+      font-size: 24px;
+      border-radius: 0 0 5px 5px;
+    }
+    h2 {
+      color: #333;
+      margin-top: 20px;
+      text-align: center;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 250px;
+      margin: 10px auto;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      display: block;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #2c6e31;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      display: block;
+      margin: auto;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .table-container {
+      max-width: 90%;
+      margin: 30px auto 0;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      min-width: 600px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      font-size: 16px;
+    }
+    th {
+      background-color: #f4f4f4;
+      cursor: pointer;
+      color: #333;
+      font-weight: bold;
+    }
+    th:hover {
+      background-color: #ddd;
+    }
+    
+    /* Hover effects for order rows */
+    #ordersTable tbody tr {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    #ordersTable tbody tr:hover {
+      background-color: #e8f5e8;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(44, 110, 49, 0.15);
+    }
+    
+    #ordersTable tbody tr:hover td {
+      color: #2c6e31;
+      font-weight: 500;
+    }
+    
+    /* Hover effect for book images */
+    #ordersTable tbody tr img:hover {
+      transform: scale(1.1);
+      transition: transform 0.2s ease;
+    }
+    
+    .highlight {
+      background-color: #fffae6;
+    }
+    .highlight:hover {
+      background-color: #fff7cc;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      .wrapper {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        transform: translateX(-100%);
+        z-index: 999;
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .sidebar.active h3 {
+        margin-top: 50px;
+      }
+      .menu-toggle {
+        display: block;
+        width: 43px;
+      }
+
+      .container {
+        margin: 80px 15px 15px;
+        padding: 15px;
+      }
+
+      input[type="text"], button {
+        width: 90%;
+        font-size: 15px;
+      }
+
+      table {
+        min-width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 20px;
+        padding: 8px;
+        width: 92%;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+
+      th, td {
+        padding: 10px;
+        font-size: 14px;
+      }
+
+      button {
+        font-size: 14px;
+      }
+
+      input[type="text"] {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toggle Button -->
+  <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+  <!-- Wrapper -->
+  <div class="wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <h3>My Account</h3>
+      <a href="My profile.html">My Profile</a>
+      <a href="UserStatusOrderMobleNumber.html">My Orders</a>
+      <a href="Raiseissue.html">Raise Issue</a>
+      <a href="Logout.html" id="logoutBtn">Logout</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+      <h1>Your Orders</h1>
+      <div class="table-container">
+        <table id="ordersTable">
+          <thead>
+            <tr>
+              <th>Book Image</th>
+              <th>Book Name</th>
+              <th>Quantity</th>
+              <th>Total Price</th>
+              <th>Status</th>
+              <th>Order placed Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Orders will be populated here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Toggle sidebar for mobile
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('active');
+    }
+
+    // Fetch user orders from backend API
+    async function fetchUserOrders() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('You must be logged in to view your orders.');
+          window.location.href = 'signup-login.html';
+          return;
+        }
+
+        const sessionToken = localStorage.getItem('sessionToken');
+        const url = sessionToken ? `/user-orders?sessionToken=${sessionToken}` : '/user-orders';
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch orders: ' + response.statusText);
+        }
+
+        const orders = await response.json();
+        populateOrdersTable(orders);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        alert('Error fetching orders. Please try again later.');
+      }
+    }
+
+    // Populate orders table with data
+    function populateOrdersTable(orders) {
+      const tbody = document.querySelector('#ordersTable tbody');
+      tbody.innerHTML = '';
+
+      if (!orders || orders.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 6;
+        td.textContent = 'No orders found.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      orders.forEach(order => {
+        // Flatten order by books
+        order.books.forEach(bookItem => {
+          const tr = document.createElement('tr');
+
+          // Book Image with click handler to open newbookDetelies.html with book id
+          const bookImageTd = document.createElement('td');
+          const img = document.createElement('img');
+          img.src = bookItem.bookImage || '';
+          img.alt = bookItem.bookName || 'Book Image';
+          img.style.width = '50px';
+          img.style.height = 'auto';
+          img.style.cursor = 'pointer';
+          img.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.open(`newbookDetelies.html?id=${bookItem.bookId}`, '_blank');
+          });
+          bookImageTd.appendChild(img);
+          tr.appendChild(bookImageTd);
+
+          // Book Name
+          const bookNameTd = document.createElement('td');
+          bookNameTd.textContent = bookItem.bookName || 'N/A';
+          tr.appendChild(bookNameTd);
+
+          // Quantity
+          const quantityTd = document.createElement('td');
+          quantityTd.textContent = bookItem.quantity || 'N/A';
+          tr.appendChild(quantityTd);
+
+          // Total Price (for this book item)
+          const totalPriceTd = document.createElement('td');
+          const price = bookItem.price || 0;
+          const quantity = bookItem.quantity || 0;
+          totalPriceTd.textContent = (price * quantity).toFixed(2);
+          tr.appendChild(totalPriceTd);
+
+          // Status
+          const statusTd = document.createElement('td');
+          const statusDescriptions = {
+            "Processing": "Processing your order.",
+           "Pending": "Order is not yet confirmed/placed.",
+            "Unshipped": "Order is confirmed/placed. It will be shipped and dispatched soon.",
+            "Shipped": "Order is processed, ready to be handed over to courier service.",
+            "Dispatched": "Order is dispatched to courier.",
+            "Delivering": "Order is midway of delivery.",
+            "Delivered": "Order has been delivered.",
+            "Completed": "Order has been completed.",
+            "Cancelled": "Order has been cancelled.",
+            "Refunded": "Order has been refunded.",
+            "Paid": "Order payment has been received.",
+            "Incomplete": "Order payment is incomplete."
+          };
+          statusTd.textContent = statusDescriptions[order.status] || 'Unknown Status';
+          tr.appendChild(statusTd);     
+
+          // Created At
+          const createdAtTd = document.createElement('td');
+          createdAtTd.textContent = new Date(order.createdAt).toLocaleDateString() || 'N/A';
+          tr.appendChild(createdAtTd);
+
+          // Add click handler on row to open b.html with order id as query param
+          tr.addEventListener('click', () => {
+            window.location.href = `b.html?orderId=${order._id}`;
+          });
+
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    // On page load, fetch and display user orders
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchUserOrders();
+    });
+  </script>
+</body>
+</html>

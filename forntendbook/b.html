@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Order Status</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+
+    .wrapper {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+      width: 220px;
+      background-color: #2c6e31;
+      color: white;
+      padding: 20px 0;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      transition: transform 0.3s ease;
+    }
+    .sidebar h3 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 1.2rem;
+      letter-spacing: 1px;
+    }
+    .sidebar a {
+      display: block;
+      color: white;
+      text-decoration: none;
+      padding: 12px 20px;
+      transition: background 0.3s;
+    }
+    .sidebar a:hover {
+      background-color: #3f8744;
+    }
+
+    /* Toggle Button for Mobile */
+    .menu-toggle {
+      display: none;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-size: 26px;
+      background: #2c6e31;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 10px;
+      z-index: 1000;
+      cursor: pointer;
+    }
+
+    /* Main Content */
+    .container {
+      flex: 1;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin: 40px;
+      padding: 20px;
+      border: 2px solid #2c6e31;
+    }
+    h1 {
+      background-color: #2c6e31;
+      color: white;
+      padding: 10px;
+      margin-bottom: 23px;
+      width: 100%;
+      text-align: center;
+      font-size: 24px;
+      border-radius: 0 0 5px 5px;
+    }
+    h2 {
+      color: #333;
+      margin-top: 20px;
+      text-align: center;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 250px;
+      margin: 10px auto;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      display: block;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #2c6e31;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      display: block;
+      margin: auto;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .table-container {
+      max-width: 90%;
+      margin: 30px auto 0;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      min-width: 600px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      font-size: 16px;
+    }
+    th {
+      background-color: #f4f4f4;
+      cursor: pointer;
+      color: #333;
+      font-weight: bold;
+    }
+    th:hover {
+      background-color: #ddd;
+    }
+    .highlight {
+      background-color: #fffae6;
+    }
+    .highlight:hover {
+      background-color: #fff7cc;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      .wrapper {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        transform: translateX(-100%);
+        z-index: 999;
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .sidebar.active h3 {
+        margin-top: 50px;
+      }
+      .menu-toggle {
+        display: block;
+        width: 43px;
+      }
+
+      .container {
+        margin: 80px 15px 15px;
+        padding: 15px;
+      }
+
+      input[type="text"], button {
+        width: 90%;
+        font-size: 15px;
+      }
+
+      table {
+        min-width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 20px;
+        padding: 8px;
+        width: 92%;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+
+      th, td {
+        padding: 10px;
+        font-size: 14px;
+      }
+
+      button {
+        font-size: 14px;
+      }
+
+      input[type="text"] {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toggle Button -->
+  <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+  <!-- Wrapper -->
+  <div class="wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <h3>My Account</h3>
+      <a href="My profile.html">My Profile</a>
+      <a href="UserStatusOrderMobleNumber.html">My Orders</a>
+      <a href="Raiseissue.html">Raise Issue</a>
+      <a href="Logout.html" id="logoutBtn">Logout</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+      <h1>Your Order Details</h1>
+      <div class="order-details-container" style="max-width: 90%; margin: 20px auto; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border: 2px solid #2c6e31;">
+        <h2>Order ID: <span id="orderId"></span></h2>
+        <p><strong>Status:</strong> <span id="orderStatus"></span></p>
+        <p><strong>Order placed Date:</strong> <span id="orderCreatedAt"></span></p>
+        <!-- <p><strong>Updated At:</strong> <span id="orderUpdatedAt"></span></p> -->
+        <p><strong>Delivery Name:</strong> <span id="deliveryName"></span></p>
+        <p><strong>Delivery Mobile:</strong> <span id="deliveryMobile"></span></p>
+        <p><strong>Delivery Email:</strong> <span id="deliveryEmail"></span></p>
+        <p><strong>Delivery Address:</strong> <span id="deliveryAddress"></span></p>
+        <p><strong>Delivery City:</strong> <span id="deliveryCity"></span></p>
+        <p><strong>Delivery State:</strong> <span id="deliveryState"></span></p>
+        <p><strong>Delivery Pincode:</strong> <span id="deliveryPincode"></span></p>
+        <h3>Books in this Order:</h3>
+        <table id="orderBooksTable" style="width: 100%; border-collapse: collapse; text-align: center;">
+          <thead>
+            <tr style="background-color: #f4f4f4;">
+              <th>Book Image</th>
+              <th>Book Name</th>
+              <th>Quantity</th>
+              <th>Total Price</th>
+              <th>Status</th>
+              <th>Order placed Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Book items will be populated here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+<script>
+  // Toggle sidebar for mobile
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('active');
+  }
+
+  // Fetch order details by orderId from query param
+  async function fetchOrderDetails() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('orderId');
+    if (!orderId) {
+      alert('Order ID not specified.');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('You must be logged in to view order details.');
+        window.location.href = 'signup-login.html';
+        return;
+      }
+
+      // Fix: Use correct API endpoint for order details
+      const response = await fetch(`/admin/order/${orderId}`, {
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch order details: ' + response.statusText);
+      }
+
+      const order = await response.json();
+
+      console.log("order is : ",order)
+
+      // Populate order details
+      document.getElementById('orderId').textContent = order.orderId || order._id || 'N/A';
+      const statusDescriptions = {
+        "Processing": "Processing your order.",
+        "Pending": "Order is not yet confirmed/placed.",
+        "Unshipped": "Order is confirmed/placed. It will be shipped and dispatched soon.",
+        "Shipped": "Order is processed, ready to be handed over to courier service.",
+        "Dispatched": "Order is dispatched to courier.",
+        "Delivering": "Order is midway of delivery.",
+        "Delivered": "Order has been delivered.",
+        "Completed": "Order has been completed.",
+        "Cancelled": "Order has been cancelled.",
+        "Refunded": "Order has been refunded.",
+        "Paid": "Order payment has been received.",
+        "Incomplete": "Order payment is incomplete."
+      };
+      document.getElementById('orderStatus').textContent = statusDescriptions[order.status] || 'Unknown Status';
+      document.getElementById('orderCreatedAt').textContent = new Date(order.createdAt).toLocaleDateString() || 'N/A';
+      // document.getElementById('orderUpdatedAt').textContent = new Date(order.updatedAt).toLocaleString() || 'N/A';
+      document.getElementById('deliveryName').textContent = order.deliveryDetails?.fullName || 'N/A';
+      document.getElementById('deliveryMobile').textContent = order.deliveryDetails?.mobile || 'N/A';
+      document.getElementById('deliveryEmail').textContent = order.deliveryDetails?.email || 'N/A';
+      document.getElementById('deliveryAddress').textContent = order.deliveryDetails?.address || 'N/A';
+      document.getElementById('deliveryCity').textContent = order.deliveryDetails?.city || 'N/A';
+      document.getElementById('deliveryState').textContent = order.deliveryDetails?.state || 'N/A';
+      document.getElementById('deliveryPincode').textContent = order.deliveryDetails?.pincode || 'N/A';
+
+      // Populate books table
+      const tbody = document.querySelector('#orderBooksTable tbody');
+      tbody.innerHTML = '';
+      if (!order.books || order.books.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 6;
+        td.textContent = 'No books found in this order.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      } else {
+        order.books.forEach(bookItem => {
+          const tr = document.createElement('tr');
+
+          // Book Image with click handler to open newbookDetelies.html with book id
+          const bookImageTd = document.createElement('td');
+          const img = document.createElement('img');
+          // Use bookItem.bookId for image and title
+          let imgSrc = '';
+          if (bookItem.bookId && bookItem.bookId.bookImages && bookItem.bookId.bookImages.length > 0) {
+            imgSrc = bookItem.bookId.bookImages[bookItem.bookId.mainImageIndex || 0];
+          }
+          img.src = imgSrc;
+          img.alt = bookItem.bookId?.title || 'Book Image';
+          img.style.width = '50px';
+          img.style.height = 'auto';
+          img.style.cursor = 'pointer';
+          img.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Open newbookDetelies.html with book id
+            let bookId = bookItem.bookId;
+            if (bookId && typeof bookId === 'object' && bookId._id) {
+              bookId = bookId._id;
+            }
+            if (bookId) {
+              window.location.href = `newbookDetelies.html?id=${bookId}`;
+            }
+          });
+          bookImageTd.appendChild(img);
+          tr.appendChild(bookImageTd);
+
+          // Book Name
+          const bookNameTd = document.createElement('td');
+          bookNameTd.textContent = bookItem.bookId?.title || 'N/A';
+          tr.appendChild(bookNameTd);
+
+          // Quantity
+          const quantityTd = document.createElement('td');
+          quantityTd.textContent = bookItem.quantity || 'N/A';
+          tr.appendChild(quantityTd);
+
+          // Total Price (quantity * price)
+          const totalPriceTd = document.createElement('td');
+          const totalPrice = (bookItem.price || 0) * (bookItem.quantity || 0);
+          totalPriceTd.textContent = totalPrice.toFixed(2);
+          tr.appendChild(totalPriceTd);
+
+          // Status (from order)
+          const statusTd = document.createElement('td');
+          const statusDescriptions = {
+            "Processing": "Processing your order.",
+            "Pending": "Order is not yet confirmed/placed.",
+            "Unshipped": "Order is confirmed/placed. It will be shipped and dispatched soon.",
+            "Shipped": "Order is processed, ready to be handed over to courier service.",
+            "Dispatched": "Order is dispatched to courier.",
+            "Delivering": "Order is midway of delivery.",
+            "Delivered": "Order has been delivered.",
+            "Completed": "Order has been completed.",
+            "Cancelled": "Order has been cancelled.",
+            "Refunded": "Order has been refunded.",
+            "Paid": "Order payment has been received.",
+            "Incomplete": "Order payment is incomplete."
+          };
+          statusTd.textContent = statusDescriptions[order.status] || 'Unknown Status';
+          tr.appendChild(statusTd);
+
+          // Created At (from order)
+          const createdAtTd = document.createElement('td');
+          createdAtTd.textContent = new Date(order.createdAt).toLocaleDateString() || 'N/A';
+          tr.appendChild(createdAtTd);
+
+          tbody.appendChild(tr);
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      alert('Error fetching order details. Please try again later.');
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    fetchOrderDetails();
+  });
+</script>
+</body>
+</html>

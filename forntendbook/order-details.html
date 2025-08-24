@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Edit Order</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .sidebar { width: 250px; height: 100vh; background-color: #2c6e31; color: white; position: fixed; top: 0; left: 0; padding: 20px 0; box-shadow: 2px 0 5px rgba(0,0,0,0.1); overflow-y: auto; }
+    .sidebar h2 { text-align: center; margin-bottom: 20px; font-size: 22px; }
+    .sidebar ul { list-style: none; padding: 0; }
+    .sidebar ul li { margin: 10px 0; }
+    .sidebar ul li a { display: block; padding: 12px 20px; text-decoration: none; color: white; font-size: 16px; transition: background-color 0.3s ease; border-radius: 5px; }
+    .sidebar ul li a:hover { background-color: #3f8744; }
+    .container { flex: 1; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: 40px; padding: 20px; border: 2px solid #2c6e31; margin-left: 270px; }
+    h1 { text-align: center; background: #2c6e31; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 24px; margin-bottom: 20px; }
+    h2 { margin-bottom: 10px; }
+    .section { border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; background: #fafafa; }
+    .section h3 { margin-top: 0; }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input, select { width: 100%; padding: 6px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; }
+    .flex { display: flex; gap: 20px; }
+    .half { flex: 1; }
+    .button { background-color: #0073aa; color: #fff; padding: 8px 15px; border: none; border-radius: 4px; margin-top: 10px; cursor: pointer; }
+    .button.green { background-color: green; }
+    .button.gray { background-color: gray; }
+    .button.red { background-color: red; }
+    .button.blue { background-color: #1976d2; color: #fff; }
+    .button.orange { background-color: #ff9800; color: #fff; }
+    .button-group { display: flex; gap: 10px; }
+    .pdf-buttons { margin-top: 18px; }
+    .back-btn { display:inline-block;margin-top:18px;padding:8px 18px;background:#1976d2;color:#fff;text-decoration:none;border-radius:5px;font-weight:bold; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #eee; }
+    .note { font-size: 0.9em; color: #555; margin-top: 10px; }
+    .right-align { text-align: right; font-size: 1.1em; margin-top: 10px; }
+    .refund-box { margin-top: 20px; text-align: right; }
+    .summary-table { width: 350px; float: right; margin-top: 10px; margin-bottom: 10px; border: 1px solid #ddd; background: #f9f9f9; }
+    .summary-table td { border: none; padding: 6px 10px; font-size: 1em; }
+    .summary-table tr.total-row td { font-weight: bold; color: #2c6e31; font-size: 1.1em; border-top: 1px solid #ccc; }
+    @media (max-width: 900px) { .container { margin: 10px; } .summary-table { float: none; width: 100%; } }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Admin Dashboard</h2>
+    <ul>
+      <li><a href="video and imag showAdmin.html"><i class="fa-solid fa-box"></i> News Box</a></li>
+      <li><a href="BenerAdmin.html"><i class="fa-solid fa-bars-progress"></i> Manage Banner</a></li>
+      <li><a href="BenerAdmin.html"><i class="fa-solid fa-bars-progress"></i> Manage Users</a></li>
+      <li><a href="AdminPendingOrdersSavenday.html"><i class="fa-solid fa-clock"></i> Pending Orders</a></li>
+      <li><a href="admin-all-ordersWithUpdate.html"><i class="fa-solid fa-globe"></i> Manage Orders</a></li>
+      <li><a href="orderAdmin-analytics.html"><i class="fa-solid fa-chart-line"></i> Order Analytics</a></li>
+      <li><a href="Admin order summery.html"><i class="fa-solid fa-list"></i> Order Summary</a></li>
+      <li><a href="book-upload.html"><i class="fa-solid fa-upload"></i> Book Upload</a></li>
+      <li><a href="BookUpdate Admin.html"><i class="fa-solid fa-pen-to-square"></i> Book Update/Delete</a></li>
+      <li><a href="uploadcsv.html"><i class="fa-solid fa-cloud-arrow-up"></i> Upload CSV</a></li>
+      <li><a href="tech-support.html"><i class="fa-solid fa-headset"></i> Tech Support</a></li>
+    </ul>
+  </div>
+  <div class="container" id="order-container">
+    Loading...
+  </div>
+  <script>
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getFullYear()}`;
+    }
+    function formatTime(iso) {
+      const d = new Date(iso);
+      return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    }
+
+    let currentOrder = null;
+
+    async function loadOrder() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      if (!id) {
+        document.getElementById('order-container').innerHTML += "<br>No order ID provided.";
+        return;
+      }
+      const res = await fetch(`/admin/order/${id}`);
+      if (!res.ok) {
+        document.getElementById('order-container').innerHTML += "<br>Order not found.";
+        return;
+      }
+      const order = await res.json();
+      currentOrder = order;
+
+      // Calculate subtotal, discount, total
+      let subtotal = 0;
+      order.books.forEach(book => {
+        subtotal += (book.price * book.quantity);
+      });
+      let discount = order.discount || 0;
+      let total = subtotal - discount;
+      if (total < 0) total = 0;
+
+      document.getElementById('order-container').innerHTML = `
+        <h2>Edit Order #${order.orderId || order._id}</h2>
+        <p>Paid on ${formatDate(order.createdAt)} @ ${formatTime(order.createdAt)} | Customer IP: ${order.customerIP || '-'}</p>
+        <div class="section">
+          <h3>Order Details</h3>
+          <div class="flex">
+            <div class="half">
+              <label>Date Created</label>
+              <input type="date" value="${order.createdAt ? order.createdAt.split('T')[0] : ''}" disabled />
+              <label>Time</label>
+              <input type="time" value="${formatTime(order.createdAt)}" disabled />
+              <label>Status</label>
+              <select id="statusSelect">
+                <option${order.status === 'Processing' ? ' selected' : ''}>Processing</option>
+                <option${order.status === 'Pending' ? ' selected' : ''}>Pending</option>
+                <option${order.status === 'Unshipped' ? ' selected' : ''}>Unshipped</option>
+                <option${order.status === 'Shipped' ? ' selected' : ''}>Shipped</option>
+                   <option${order.status === 'Dispatched' ? ' selected' : ''}>Dispatched</option>
+                    <option${order.status === 'Delivering' ? ' selected' : ''}>Delivering</option>
+                <option${order.status === 'Delivered' ? ' selected' : ''}>Delivered</option>
+                   <option${order.status === 'Completed' ? ' selected' : ''}>Completed</option>
+                <option${order.status === 'Cancelled' ? ' selected' : ''}>Cancelled</option>
+                <option${order.status === 'Refunded' ? ' selected' : ''}>Refunded</option>
+              </select>
+              <button class="button green" onclick="updateStatus('${order._id}')">Update Status</button>
+            </div>
+            <div class="half">
+              <h4>Billing Info</h4>
+              <p>Name: ${order.deliveryDetails?.fullName || '-'}</p>
+              <p>Address: ${order.deliveryDetails?.address || '-'}, ${order.deliveryDetails?.city || ''} ${order.deliveryDetails?.state || ''} ${order.deliveryDetails?.pincode || ''}</p>
+              <p>Email: <a href="mailto:${order.deliveryDetails?.email || order.userEmail || ''}" id="email-link">${order.deliveryDetails?.email || order.userEmail || '-'}</a></p>
+              <p>Phone: ${order.deliveryDetails?.mobile || '-'}</p>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <h3>TrackFree - Delivery Tracker</h3>
+          <label>Courier Name</label>
+          <select id="courierSelect">
+            <option value="India Post" ${order.courier === 'India Post' ? ' selected' : ''}>India Post</option>
+            <option value="Delhivery" ${order.courier === 'Delhivery' ? ' selected' : ''}>Delhivery</option>
+            <option value="Blue Dart" ${order.courier === 'Blue Dart' ? ' selected' : ''}>Blue Dart</option>
+          </select>
+          <label>Tracking Number</label>
+          <input type="text" id="trackingInput" value="${order.trackingId || ''}" />
+          <button class="button" onclick="updateTracking('${order._id}')">Update Tracking</button>
+        </div>
+        <div class="section">
+          <h3>Items</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Cost</th>
+                <th>Qty</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.books.map(book => `
+                <tr>
+                  <td>${book.title}</td>
+                  <td>₹${book.price}</td>
+                  <td>${book.quantity}</td>
+                  <td>₹${book.price * book.quantity}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <table class="summary-table">
+            <tr>
+              <td>Subtotal</td>
+              <td class="right-align">₹${subtotal}</td>
+            </tr>
+            <tr>
+              <td>Discount</td>
+              <td class="right-align">₹${discount}</td>
+            </tr>
+            <tr class="total-row">
+              <td>Total</td>
+              <td class="right-align">₹${total}</td>
+            </tr>
+          </table>
+          <div style="clear:both"></div>
+          <div class="refund-box">
+            <button class="button red" onclick="refundOrder('${order._id}')" ${order.status === 'Refunded' ? 'disabled' : ''}>Refund</button>
+            <p class="note">This order is no longer editable after refund.</p>
+          </div>
+          
+          <div class="pdf-buttons">
+            <button class="button blue" onclick="downloadInvoicePDF()">PDF Invoice</button>
+            <button class="button orange" onclick="downloadPackingSlipPDF()">PDF Packing Slip</button>
+          </div>
+          <a href="admin-all-ordersWithUpdate.html" class="back-btn">
+            &larr; Back to All Orders
+          </a>
+        </div>
+      `;
+    }
+
+    async function updateStatus(orderId) {
+      const status = document.getElementById('statusSelect').value;
+      try {
+        const res = await fetch(`/admin/order/${orderId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status })
+        });
+        if (!res.ok) throw new Error("Failed to update status");
+        Swal.fire({
+          icon: 'success',
+          title: 'Order Status Updated',
+          text: 'Order status updated successfully.'
+        });
+        loadOrder();
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message || "Could not update status."
+        });
+
+
+      }
+    }
+
+    async function updateTracking(orderId) {
+      let courier = document.getElementById('courierSelect').value;
+      const trackingId = document.getElementById('trackingInput').value;
+      const deliveryName = currentOrder.deliveryDetails?.fullName || "Customer";
+      const email = currentOrder.deliveryDetails?.email || currentOrder.userEmail;
+      if (!email) {
+        Swal.fire("Error", "No email found for this order.", "error");
+        return;
+      }
+
+      if (!courier || courier.trim() === "") {
+        courier = "India Post"; // default courier if none selected
+      }
+
+      const subject = `Dispatched! Your Aravali Publication order has been dispatched`;
+      const message = JSON.stringify({
+        courier,
+        trackingId
+      });
+
+      try {
+        const res = await fetch(`/order/${orderId}/tracking`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ trackingId, courier, email, subject, message })
+        });
+        if (!res.ok) throw new Error("Failed to update tracking");
+        Swal.fire("Tracking ID Updated", "Email sent successfully.", "success");
+        loadOrder();
+      } catch (err) {
+        Swal.fire("Error updating Tracking ID", err.message, "error");
+      }
+    }
+
+    async function refundOrder(orderId) {
+      try {
+        const confirm = await Swal.fire({
+          title: 'Are you sure?',
+          text: "This will mark the order as refunded.",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, refund it!',
+          cancelButtonText: 'Cancel'
+        });
+        if (!confirm.isConfirmed) return;
+
+        const res = await fetch(`/admin/order/${orderId}/refund`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+        if (!res.ok) throw new Error("Failed to refund order");
+        Swal.fire({
+          icon: 'success',
+          title: 'Order Refunded',
+          text: 'Order has been marked as refunded.'
+        });
+        loadOrder();
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Refund Error",
+          text: error.message || "Could not refund order."
+        });
+      }
+    }
+
+    // PDF Invoice Download - Full Page Layout
+  function downloadInvoicePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  
+  // Exact margins and positioning to match PDF
+  const marginLeft = 20;
+  const marginRight = 20;
+  const marginTop = 15;
+  const pageWidth = 210 - (marginLeft + marginRight);
+  
+  // Header - "Aravali Publication Invoice/Bill"
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.text("Aravali Publication Invoice/Bill", marginLeft, marginTop);
+  
+  // Sold By Section (Left side)
+  const soldByY = marginTop + 12;
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'bold');
+  doc.text("Sold By:", marginLeft, soldByY);
+  
+  doc.setFont(undefined, 'normal');
+  doc.text("Aravali Publication,", marginLeft, soldByY + 5);
+  doc.text("1, Rajiv Nagar, VDN, Jaipur,", marginLeft, soldByY + 10);
+  doc.text("Rajasthan, 302039", marginLeft, soldByY + 15);
+  doc.text("IN", marginLeft, soldByY + 20);
+  
+  // Shipping Address Section (Right side)
+  const shippingX = marginLeft + 95; // Exact positioning as per PDF
+  doc.setFont(undefined, 'bold');
+  doc.text("Shipping Adress:", shippingX, soldByY); // Note: keeping "Adress" typo as in original
+  
+  doc.setFont(undefined, 'normal');
+  doc.text(currentOrder.deliveryDetails.fullName || "<Name of Recipient>", shippingX, soldByY + 5);
+  doc.text(currentOrder.deliveryDetails.address || "<Adress of Recipient>", shippingX, soldByY + 10);
+  
+  // Order Details
+  const orderY = soldByY + 30;
+  doc.setFont(undefined, 'normal');
+  doc.text(`Order ID: ${currentOrder.orderId || currentOrder._id}`, marginLeft, orderY);
+  doc.text(`Order Date: ${formatDate(currentOrder.createdAt)}`, marginLeft, orderY + 5);
+  
+  // Table Section - exactly matching PDF structure
+  const tableY = orderY + 15;
+  
+  // Calculate subtotal
+  let subtotal = 0;
+  currentOrder.books.forEach(b => subtotal += b.price * b.quantity);
+  
+  // Table data exactly as shown in PDF
+  const tableData = [];
+  
+  // Add book items
+  currentOrder.books.forEach((book, index) => {
+    const unitPrice = book.price;
+    const discount = 0; // As shown in PDF
+    const qty = book.quantity;
+    const tax = 0; // As shown in PDF
+    const totalAmount = unitPrice * qty;
+    
+    tableData.push([
+      (index + 1).toString(),
+      book.title,
+      unitPrice.toString(),
+      discount.toString(),
+      qty.toString(),
+      tax.toString(),
+      totalAmount.toString()
+    ]);
+  });
+  
+  // Add shipping charges row if applicable
+  const shippingCharge = currentOrder.shippingCharge || 0;
+  if (shippingCharge > 0) {
+    tableData.push([
+      "",
+      "Shipping Charges",
+      shippingCharge.toString(),
+      "0",
+      "1",
+      "0",
+      shippingCharge.toString()
+    ]);
+  }
+  
+  // Create table with exact styling
+  doc.autoTable({
+    startY: tableY,
+    head: [["S.\nNo.", "Product Description", "Unit\nPrice", "Discount", "Qty", "Tax", "Total\nAmount"]],
+    body: tableData,
+    theme: 'grid',
+    headStyles: { 
+      fillColor: [255, 255, 255], // White background as in PDF
+      textColor: [0, 0, 0], // Black text
+      fontStyle: 'bold',
+      fontSize: 9,
+      halign: 'center',
+      valign: 'middle'
+    },
+    bodyStyles: {
+      fontSize: 9,
+      halign: 'center',
+      valign: 'middle',
+      textColor: [0, 0, 0]
+    },
+    columnStyles: {
+      0: { cellWidth: 15 }, // S.No
+      1: { cellWidth: 60, halign: 'left' }, // Product Description
+      2: { cellWidth: 20 }, // Unit Price
+      3: { cellWidth: 20 }, // Discount
+      4: { cellWidth: 15 }, // Qty
+      5: { cellWidth: 15 }, // Tax
+      6: { cellWidth: 25 } // Total Amount
+    },
+    margin: { left: marginLeft, right: marginRight },
+    styles: {
+      lineColor: [0, 0, 0],
+      lineWidth: 0.3,
+      cellPadding: 2
+    },
+    tableLineColor: [0, 0, 0],
+    tableLineWidth: 0.3
+  });
+  
+  // Total row separate from table (as shown in PDF)
+  const totalY = doc.lastAutoTable.finalY;
+  const totalRowHeight = 8;
+  
+  // Draw total row box
+  doc.rect(marginLeft, totalY, pageWidth, totalRowHeight);
+  
+  // Calculate final total
+  const discount = currentOrder.discount || 0;
+  let finalTotal = subtotal + shippingCharge - discount;
+  if (finalTotal < 0) finalTotal = 0;
+  
+  // Total row content
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(9);
+  doc.text("Total", marginLeft + pageWidth - 45, totalY + 5);
+  doc.text("0", marginLeft + pageWidth - 25, totalY + 5); // Tax total (as shown in PDF)
+  doc.text(finalTotal.toString(), marginLeft + pageWidth - 12, totalY + 5);
+  
+  // Signature Section (exactly as in PDF)
+  const signatureY = totalY + 25;
+  
+  // Left side - Receiver's Sign
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'normal');
+  doc.text("Receiver's Sign:", marginLeft, signatureY);
+  
+  // Right side - Aravali Publication Authorized Signatory
+  const rightX = marginLeft + pageWidth - 60;
+  doc.text("Aravali Publication", rightX, signatureY);
+  doc.text("Authorised Signatory", rightX, signatureY + 6);
+  
+  // Save the PDF
+  doc.save(`Invoice_${currentOrder.orderId || currentOrder._id}.pdf`);
+}
+
+    // PDF Packing Slip Download - Full Page Layout
+function downloadPackingSlipPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  
+  // Exact margins and positioning to match PDF
+  const marginLeft = 20;
+  const marginRight = 20;
+  const marginTop = 20;
+  const pageWidth = 210 - (marginLeft + marginRight);
+  
+  // Header - "Aravali Publication"
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text("Aravali Publication", marginLeft, marginTop);
+  
+  // Ship to Section
+  const shipToY = marginTop + 15;
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'bold');
+  doc.text("Ship to:", marginLeft, shipToY);
+  
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(11);
+  doc.text(currentOrder.deliveryDetails.fullName || "<Name of Recipient>", marginLeft, shipToY + 8);
+  
+  // Format full address in multiple lines
+  const addressLines = [];
+  if (currentOrder.deliveryDetails.address) {
+    addressLines.push(currentOrder.deliveryDetails.address);
+  }
+  if (currentOrder.deliveryDetails.city && currentOrder.deliveryDetails.state) {
+    addressLines.push(`${currentOrder.deliveryDetails.city}, ${currentOrder.deliveryDetails.state}`);
+  }
+  if (currentOrder.deliveryDetails.pincode) {
+    addressLines.push(`PIN: ${currentOrder.deliveryDetails.pincode}`);
+  }
+  
+  // If no detailed address, show placeholder
+  if (addressLines.length === 0) {
+    addressLines.push("<Full_adress of Recipient>");
+  }
+  
+  addressLines.forEach((line, index) => {
+    doc.text(line, marginLeft, shipToY + 16 + (index * 6));
+  });
+  
+  // Mobile number
+  const mobileY = shipToY + 16 + (addressLines.length * 6);
+  doc.text(currentOrder.deliveryDetails.mobile || "<Mobile_Number_recipient>", marginLeft, mobileY + 6);
+  
+  // Shipped from Section
+  const shippedFromY = mobileY + 20;
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(12);
+  doc.text("Shipped from:", marginLeft, shippedFromY);
+  
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(11);
+  doc.text("Aravali Publication", marginLeft, shippedFromY + 8);
+  doc.text("1, Rajiv Nagar, VDN, Jaipur, Rajasthan, 302039", marginLeft, shippedFromY + 14);
+  doc.text("IN", marginLeft, shippedFromY + 20);
+  doc.text("8146785679", marginLeft, shippedFromY + 26);
+  
+  // Product Description
+  const productDescY = shippedFromY + 40;
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(12);
+  doc.text("Product Description:", marginLeft, productDescY);
+  
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(11);
+  doc.text("Aravali Publication Books", marginLeft + 50, productDescY);
+  
+  // Return instruction
+  const returnY = productDescY + 15;
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(10);
+  doc.text('If undelivered, return to the "Shipped from" Adress', marginLeft, returnY);
+  
+  // Save the PDF
+  doc.save(`PackingSlip_${currentOrder.orderId || currentOrder._id}.pdf`);
+}
+
+    loadOrder();
+  </script>
+  </body>
+  </html>
