@@ -341,6 +341,9 @@ import orderRoutes from "./routes/orderRoute.js";
 import trackingRoutes from "./routes/trackingRoutes.js";
 import cron from "node-cron";
 import { authMiddleware } from "./middleware/authMiddleware.js";
+import helmet from 'helmet';
+
+
 
 
 
@@ -470,7 +473,11 @@ app.delete("/content/:id", deleteContent);
 app.put("/content/:id", updateContent);
 
 app.use("/", userRoutes);
-
+app.use(helmet());
+app.use((req, res, next) => {
+  res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none';");
+  next();
+});
 // app.get("/admin", authMiddleware)
 // app.post("/verifyUser", verifyUser)
 
